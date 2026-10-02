@@ -1,7 +1,7 @@
 const API="https://puurdihdaplegdndxbho.supabase.co/functions/v1/javis-api";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let session=null,lastData=null,listening=false,recognition=null,installPrompt=null;
+let session=null,lastData=null,listening=false,recognition=null,installPrompt=null,voiceOrigin=false,watchCommandId=null;try{watchCommandId=sessionStorage.getItem("javis_voice_watch")}catch{}
 
 function saveSession(s){session=s||null;if(s)localStorage.setItem("javis_session",JSON.stringify(s));else localStorage.removeItem("javis_session")}
 function loadSession(){try{session=JSON.parse(localStorage.getItem("javis_session")||"null")}catch{session=null}}
@@ -47,6 +47,13 @@ function render(d){
   document.querySelectorAll("[data-del]").forEach(el=>el.onclick=async e=>{try{await call("delete_task",{id:e.target.dataset.del});await loadDashboard()}catch(err){notice(err.message,true)}});
   document.querySelectorAll("[data-check]").forEach(el=>el.onclick=async e=>{const key=e.target.dataset.check;try{e.target.disabled=true;notice("Queuing project check…");const d=await call("queue_command",{command:projectCommand(key)});notice(d.message||"Project check queued.");await loadDashboard()}catch(err){notice(err.message,true)}finally{e.target.disabled=false}});
   $("refreshed").textContent=new Date().toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"});
+  if(watchCommandId){
+    const watched=d.commands.find(x=>String(x.id)===String(watchCommandId));
+    if(watched&&["completed","failed","needs_approval"].includes(watched.status)){
+      const said=watched.status==="completed"?(watched.result_summary||"Your Javis command is complete."):watched.status==="needs_approval"?"Your command needs approval before Javis can continue.":(watched.error_text||"That Javis command failed.");
+      notice(said,watched.status==="failed");speak(said);watchCommandId=null;try{sessionStorage.removeItem("javis_voice_watch")}catch{}
+    }
+  }
 }
 
 async function runCommand(){
@@ -58,15 +65,15 @@ async function runCommand(){
     else if(low.startsWith("task:")){await call("add_task",{text:text.slice(5).trim()});notice("Task saved.");}
     else if(low.startsWith("remember:")||low.startsWith("note:")){await call("add_note",{text:text.slice(text.indexOf(":")+1).trim()});notice("Note saved.");}
     else if(low.startsWith("learn:")||low.startsWith("correction:")){await call("add_learning",{statement:text.slice(text.indexOf(":")+1).trim(),kind:low.startsWith("correction:")?"correction":"observation"});notice("Learning saved for verification.");}
-    else{const d=await call("queue_command",{command:text});notice(d.message||"Queued for Javis.");}
-    $("cmd").value="";await loadDashboard();
+    else{const d=await call("queue_command",{command:text});notice(d.message||"Queued for Javis.");if(voiceOrigin&&d.command_id){watchCommandId=String(d.command_id);try{sessionStorage.setItem("javis_voice_watch",watchCommandId)}catch{}speak("Command accepted. I will tell you when it is finished.")}}
+    voiceOrigin=false;$("cmd").value="";await loadDashboard();
   }catch(e){notice(e.message,true)}finally{$("run").disabled=false}
 }
 
 function startMic(){
   const R=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!R){notice("Browser voice dictation is unavailable here. Type instead.",true);return}
-  if(!recognition){recognition=new R();recognition.lang="en-AU";recognition.interimResults=false;recognition.continuous=false;recognition.onstart=()=>{listening=true;$("mic").textContent="Stop mic";notice("Listening…")};recognition.onresult=e=>{$("cmd").value=e.results[0][0].transcript;notice("Voice captured. Review it, then run command.")};recognition.onerror=e=>notice("Microphone: "+e.error,true);recognition.onend=()=>{listening=false;$("mic").textContent="Mic"}}
+  if(!recognition){recognition=new R();recognition.lang="en-AU";recognition.interimResults=false;recognition.continuous=false;recognition.onstart=()=>{listening=true;$("mic").textContent="Stop mic";notice("Listening…")};recognition.onresult=e=>{$("cmd").value=e.results[0][0].transcript;notice("Voice captured. Running command…");voiceOrigin=true;setTimeout(runCommand,120)};recognition.onerror=e=>notice("Microphone: "+e.error,true);recognition.onend=()=>{listening=false;$("mic").textContent="Mic"}}
   if(listening)recognition.stop();else try{recognition.start()}catch(e){notice(e.message,true)}
 }
 
