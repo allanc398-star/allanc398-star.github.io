@@ -1,0 +1,13 @@
+{
+  "name":"Javis",
+  "short_name":"Javis",
+  "description":"Allan's private cloud command centre",
+  "start_url":"/",
+  "scope":"/",
+  "display":"standalone",
+  "background_color":"#02090b",
+  "theme_color":"#031417",
+  "icons":[
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
