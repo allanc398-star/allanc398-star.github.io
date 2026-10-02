@@ -39,6 +39,14 @@ function render(d){
   $("mTasks").textContent=d.tasks.filter(x=>!x.done).length;
   $("mLearn").textContent=d.learnings.filter(x=>x.verification_status==="verified").length;
   $("buildTag").textContent=d.build||"JAVIS";
+  const checks=d.build_checks||[];
+  const passed=checks.filter(x=>x.status==="passed").length;
+  const userChecks=checks.filter(x=>x.status==="user_check").length;
+  const blocked=checks.filter(x=>["blocked","failed"].includes(x.status)).length;
+  $("buildProgress").textContent=checks.length?`${passed}/${checks.length} PASSED`:"NO CHECKS";
+  $("buildProgress").classList.toggle("offline",blocked>0);
+  $("buildChecks").innerHTML=checks.length?checks.map(x=>`<div class="buildCheck"><div class="row"><strong>${esc(x.title)}</strong><span class="status ${esc(x.status)}">${esc(x.status.replaceAll("_"," "))}</span></div><p>${esc(x.detail||"")}</p>${x.verified_at?`<small>Verified: ${new Date(x.verified_at).toLocaleString("en-AU")}</small>`:""}</div>`).join(""):'<div class="empty">No build checks loaded.</div>';
+  if(userChecks>0&&!blocked) $("healthDetail").dataset.userChecks=String(userChecks);
   $("workers").innerHTML=d.workers?.length?d.workers.map(x=>{
     const stale=x.last_seen_at ? (Date.now()-new Date(x.last_seen_at).getTime()>2*60*60*1000) : true;
     const state=stale&&x.status==="idle"?"waiting":x.status;
@@ -86,7 +94,7 @@ async function runCommand(){
 function startMic(){
   const R=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!R){notice("Browser voice dictation is unavailable here. Type instead.",true);return}
-  if(!recognition){recognition=new R();recognition.lang="en-AU";recognition.interimResults=false;recognition.continuous=false;recognition.onstart=()=>{listening=true;$("mic").textContent="Stop mic";notice("Listening…")};recognition.onresult=e=>{$("cmd").value=e.results[0][0].transcript;notice("Voice captured. Running command…");voiceOrigin=true;setTimeout(runCommand,120)};recognition.onerror=e=>notice("Microphone: "+e.error,true);recognition.onend=()=>{listening=false;$("mic").textContent="Mic"}}
+  if(!recognition){recognition=new R();recognition.lang="en-AU";recognition.interimResults=false;recognition.continuous=false;recognition.onstart=()=>{listening=true;$("mic").textContent="Stop mic";notice("Listening…")};recognition.onresult=async e=>{$("cmd").value=e.results[0][0].transcript;notice("Voice captured. Running command…");try{await call("mark_user_check",{key:"microphone"})}catch{}voiceOrigin=true;setTimeout(runCommand,120)};recognition.onerror=e=>notice("Microphone: "+e.error,true);recognition.onend=()=>{listening=false;$("mic").textContent="Mic"}}
   if(listening)recognition.stop();else try{recognition.start()}catch(e){notice(e.message,true)}
 }
 
@@ -109,5 +117,11 @@ $("install").onclick=async()=>{if(!installPrompt){notice("Use your browser's Add
 $("addTask").onclick=async()=>{const text=$("task").value.trim();if(!text)return;try{await call("add_task",{text});$("task").value="";await loadDashboard()}catch(e){notice(e.message,true)}};
 $("addNote").onclick=async()=>{const text=$("note").value.trim();if(!text)return;try{await call("add_note",{text});$("note").value="";notice("Note saved.");await loadDashboard()}catch(e){notice(e.message,true)}};
 $("cmd").onkeydown=e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))runCommand()};$("password").onkeydown=e=>{if(e.key==="Enter")signIn()};
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;$("install").classList.remove("hide")});
+window.addEventListener("appinstalled",()=>{installPrompt=null;$("install").classList.add("hide");notice("Javis installed.")});
+window.addEventListener("online",()=>{setNetwork();if(session)loadDashboard()});
+window.addEventListener("offline",setNetwork);
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));
+setNetwork();
 loadSession();if(session){showAuth(true);loadDashboard()}else showAuth(false);
-setInterval(()=>{if(session)loadDashboard()},30000);
+setInterval(()=>{if(session&&navigator.onLine)loadDashboard()},30000);
