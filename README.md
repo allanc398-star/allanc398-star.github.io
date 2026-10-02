@@ -50,3 +50,18 @@ Before treating a material change as stable:
 ## Cost control
 
 The production path is designed to avoid paid builder actions. Do not enable paid resources, domains or APIs without explicit approval.
+
+
+## Worker layers
+
+Javis uses two worker layers plus maintenance:
+
+- **Local worker:** `public.javis_local_worker_tick()` runs immediately after a command insert and every minute through Supabase Cron. It handles local status, catch-up, tasks, notes, approvals and tester-feedback summaries without waiting for ChatGPT.
+- **Deep worker:** the ChatGPT Master Build automation remains for current web research, Gmail and connected apps, source comparison and deeper reasoning.
+- **Maintenance worker:** `public.javis_maintenance_tick()` runs every five minutes to recover stale running commands and keep cron history bounded.
+
+The dashboard reads `javis_worker_state` so worker health is based on actual write-backs rather than the web page merely loading.
+
+## Completion gate
+
+`javis_build_checks` stores the base-build verification state. Automated checks can pass independently. Login, signed-in browser testing and microphone permission remain explicit user checks until Allan performs them.
