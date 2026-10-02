@@ -1,1 +1,98 @@
-<!doctype html><html lang="en-AU"><head><meta charset="utf-8"><title>Javis</title></head><body><h1>Javis</h1><p>Deployment test</p></body></html>
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#031417">
+<meta name="description" content="Javis private cloud command centre">
+<title>Javis</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="login" class="login">
+  <div class="eyebrow">PRIVATE CLOUD ACCESS</div>
+  <h1>JAVIS</h1>
+  <p>Source-owned Javis. GitHub serves the interface. Supabase stores the secure cloud data.</p>
+  <input id="email" type="email" placeholder="Email" autocomplete="username">
+  <input id="password" type="password" placeholder="Password" autocomplete="current-password">
+  <div class="actions">
+    <button id="signin" class="btn">Sign in</button>
+    <button id="signup" class="btn ghost">First time? Create login</button>
+  </div>
+  <div id="authmsg" class="msg"></div>
+</div>
+
+<div id="app" class="wrap hide">
+<header class="top">
+  <div>
+    <div class="eyebrow">ALLAN'S PRIVATE CLOUD SYSTEM</div>
+    <h1>JAVIS</h1>
+    <p>Mission control · verified memory · cloud command queue</p>
+  </div>
+  <div class="actions">
+    <span class="pill">SOURCE-OWNED</span>
+    <button id="logout" class="btn ghost">Sign out</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="card coreCard">
+    <div class="core">
+      <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+      <div class="coreInner"><strong>ONLINE</strong><span>JAVIS CORE</span></div>
+    </div>
+    <div class="coreText">
+      <div class="live"><span class="dot"></span> CLOUD COMMAND LAYER ACTIVE</div>
+      <h2>One command centre.</h2>
+      <p>Projects, commands, tasks, tester feedback and verified learning are stored in the secure backend. Larger jobs enter the Javis cloud queue.</p>
+    </div>
+  </div>
+  <div class="metrics">
+    <div class="card metric"><span>PROJECT STREAMS</span><strong id="mStreams">0</strong></div>
+    <div class="card metric"><span>COMMANDS IN PROGRESS</span><strong id="mCommands">0</strong></div>
+    <div class="card metric"><span>OPEN TASKS</span><strong id="mTasks">0</strong></div>
+    <div class="card metric"><span>VERIFIED LEARNINGS</span><strong id="mLearn">0</strong></div>
+  </div>
+</section>
+
+<section class="card command">
+  <div class="sectionHead">
+    <div><div class="eyebrow">VOICE / COMMAND BUS</div><h2>Talk to Javis</h2></div>
+    <div class="actions"><button id="mic" class="btn ghost">Mic</button><button id="speak" class="btn ghost">Speak</button></div>
+  </div>
+  <textarea id="cmd" placeholder="Try: catch me up on everything, update my Townsville route, check QCS recruiting, compare Starlink Mini, check the girls' feedback, task: ..., remember: ..."></textarea>
+  <div class="actions"><span id="cmdmsg" class="msg">Ready.</span><button id="run" class="btn">Run command</button></div>
+</section>
+
+<section class="grid">
+  <div class="card">
+    <div class="sectionHead"><div><div class="eyebrow">MISSION CONTROL</div><h2>Active projects</h2></div><small id="refreshed"></small></div>
+    <div id="streams" class="list"></div>
+  </div>
+
+  <div class="card">
+    <div class="sectionHead"><div><div class="eyebrow">CLOUD WORK</div><h2>Javis activity</h2></div></div>
+    <div id="commands" class="list"></div>
+  </div>
+
+  <div class="card">
+    <div class="sectionHead"><div><div class="eyebrow">TASK ARRAY</div><h2>Tasks</h2></div></div>
+    <div class="actions"><input id="task" placeholder="Add task"><button id="addTask" class="btn">Add</button></div>
+    <div id="tasks" class="list"></div>
+  </div>
+
+  <div class="card">
+    <div class="sectionHead"><div><div class="eyebrow">MEMORY BANK</div><h2>Verified learning</h2></div></div>
+    <div id="learnings" class="list"></div>
+  </div>
+
+  <div class="card" style="grid-column:1/-1">
+    <div class="sectionHead"><div><div class="eyebrow">THINKLINK TEST LOOP</div><h2>Girls' tester feedback</h2></div></div>
+    <div id="feedback" class="feedbackGrid"></div>
+  </div>
+</section>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
