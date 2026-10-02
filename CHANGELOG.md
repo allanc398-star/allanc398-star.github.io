@@ -16,3 +16,10 @@
 - Added cloud-worker heartbeat and system-health panel.
 - Added signed-in JSON backup export.
 - Added browser content-security restrictions.
+
+- Added immediate Supabase local worker plus one-minute cron fallback.
+- Added five-minute stale-job recovery and maintenance worker.
+- Added persistent build-completion checks.
+- Added automatic DOM-reference regression checking during stability work.
+- Restored dropped install, backup, refresh and network-status controls.
+- Restored service-worker registration and install prompt handling.
