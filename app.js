@@ -91,6 +91,18 @@ function startMic(){
 }
 
 $("signin").onclick=signIn;$("signup").onclick=signUp;$("logout").onclick=signOut;$("run").onclick=runCommand;$("mic").onclick=startMic;$("speak").onclick=()=>speak($("cmd").value.trim()||statusSummary());
+async function runSelfTest(){
+  const el=$("healthDetail");
+  el.textContent="Running signed-in checks…";
+  try{
+    const d=await call("self_test");
+    const good=d.checks.filter(x=>x.ok).length;
+    const bad=d.checks.filter(x=>!x.ok);
+    el.innerHTML=`<strong>${d.all_ok?"PASS":"CHECK"}:</strong> ${good}/${d.checks.length} secure data checks passed.${bad.length?" Failed: "+bad.map(x=>esc(x.name)).join(", "):""}<br><small>Server: ${new Date(d.server_time).toLocaleString("en-AU")} · Build: ${esc(d.build)}</small>`;
+    notice(d.all_ok?"Javis self-test passed.":"Javis self-test found a problem.",!d.all_ok);
+  }catch(e){el.textContent="Self-test failed: "+e.message;notice(e.message,true)}
+}
+$("selfTest").onclick=runSelfTest;
 $("refresh").onclick=async()=>{notice("Refreshing…");await loadDashboard()};
 $("backup").onclick=async()=>{try{notice("Preparing backup…");const d=await call("export_data");const blob=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="javis-backup-"+new Date().toISOString().replaceAll(":","-")+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);notice("Backup downloaded.")}catch(e){notice(e.message,true)}};
 $("install").onclick=async()=>{if(!installPrompt){notice("Use your browser's Add to Home Screen option to install Javis.");return}installPrompt.prompt();const choice=await installPrompt.userChoice;notice(choice.outcome==="accepted"?"Javis install accepted.":"Install cancelled.");installPrompt=null;$("install").classList.add("hide")};
