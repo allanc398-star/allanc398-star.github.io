@@ -6,7 +6,11 @@
 <meta name="theme-color" content="#031417">
 <meta name="description" content="Javis private cloud command centre">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://puurdihdaplegdndxbho.supabase.co; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">\n<link rel="manifest" href="manifest.webmanifest">\n<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://puurdihdaplegdndxbho.supabase.co; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>Javis</title>
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -33,6 +37,10 @@
   </div>
   <div class="actions">
     <span class="pill">SOURCE-OWNED</span>
+    <span id="netBadge" class="pill">ONLINE</span>
+    <button id="install" class="btn ghost hide">Install</button>
+    <button id="backup" class="btn ghost">Backup</button>
+    <button id="refresh" class="btn ghost">Refresh</button>
     <button id="logout" class="btn ghost">Sign out</button>
   </div>
 </header>
@@ -61,6 +69,14 @@
   <div class="sectionHead"><div><div class="eyebrow">SYSTEM HEALTH</div><h2>Cloud workers</h2></div><div class="actions"><span id="buildTag" class="pill">CHECKING</span><button id="selfTest" class="btn ghost">Run self-test</button></div></div>
   <div id="workers" class="workerGrid"></div>
   <div id="healthDetail" class="healthDetail">Signed-in self-test has not run yet.</div>
+</section>
+
+<section class="card buildCard">
+  <div class="sectionHead">
+    <div><div class="eyebrow">BUILD COMPLETION</div><h2>Base-build gate</h2></div>
+    <span id="buildProgress" class="pill">CHECKING</span>
+  </div>
+  <div id="buildChecks" class="buildChecks"></div>
 </section>
 
 <section class="card command">
