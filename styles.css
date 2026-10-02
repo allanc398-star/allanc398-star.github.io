@@ -17,3 +17,4 @@ button,input,textarea{font:inherit}.hide{display:none!important}.wrap{max-width:
 @media(max-width:820px){.auditGrid{grid-template-columns:1fr}}
 .systemCard{margin:14px 0}.workerGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}.workerCard{background:var(--panel2);border:1px solid #103b40;border-radius:11px;padding:11px}.workerCard strong{text-transform:capitalize;font-size:12px}.workerCard p{font-size:12px;color:#9bbab8;line-height:1.45;margin:7px 0}.workerCard small{color:#5f8d8b}.status.waiting{color:var(--warn);border-color:#625d36}
 @media(max-width:820px){.workerGrid{grid-template-columns:1fr}}
+.healthDetail{margin-top:10px;border-top:1px solid #103b40;padding-top:10px;color:#8fb5b3;font-size:11px;line-height:1.5}.healthDetail strong{color:#8de9e0}.healthDetail small{color:#5f8d8b}
