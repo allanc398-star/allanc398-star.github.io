@@ -1,6 +1,8 @@
 (() => {
   const byId = id => document.getElementById(id);
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const synth = window.speechSynthesis || null;
+  const nativeSpeak = synth?.speak?.bind(synth) || null;
   let handsFree = false;
   let recognizer = null;
   let speaking = false;
@@ -8,18 +10,18 @@
   let restartTimer = null;
 
   function availableVoices(){
-    return (window.speechSynthesis?.getVoices?.() || []);
+    return (synth?.getVoices?.() || []);
   }
 
   function voiceScore(v){
     const name = String(v.name || "");
     const lang = String(v.lang || "");
     let score = 0;
-    if (/^en-GB$/i.test(lang)) score += 50;
+    if (/^en-GB$/i.test(lang)) score += 60;
     else if (/^en-AU$/i.test(lang)) score += 35;
     else if (/^en/i.test(lang)) score += 10;
-    if (/male|daniel|james|arthur|oliver|ryan|william|thomas|alex|lee/i.test(name)) score += 35;
-    if (/female|karen|samantha|victoria|olivia|moira|fiona|tessa|catherine/i.test(name)) score -= 40;
+    if (/male|daniel|james|arthur|oliver|ryan|william|thomas|alex|lee/i.test(name)) score += 40;
+    if (/female|karen|samantha|victoria|olivia|moira|fiona|tessa|catherine/i.test(name)) score -= 50;
     if (/google|samsung|microsoft/i.test(name)) score += 5;
     return score;
   }
@@ -40,32 +42,53 @@
     clearTimeout(restartTimer);
     if(!handsFree || speaking || document.hidden) return;
     restartTimer = setTimeout(()=>{
-      try{
-        if(recognizer) recognizer.start();
-      }catch{}
+      try{ recognizer?.start(); }catch{}
     }, delay);
   }
 
-  function movieSpeak(text){
-    if(!("speechSynthesis" in window) || !text) return;
-    speaking = true;
-    try{ recognizer?.abort(); }catch{}
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(String(text));
+  function applyMovieVoice(u){
     const v = preferredVoice();
     if(v) u.voice = v;
     u.lang = v?.lang || "en-GB";
-    u.rate = 0.92;
-    u.pitch = 0.82;
+    u.rate = 0.90;
+    u.pitch = 0.78;
     u.volume = 1;
-    u.onend = u.onerror = () => {
+  }
+
+  function prepareForSpeech(u){
+    speaking = true;
+    try{ recognizer?.abort(); }catch{}
+    applyMovieVoice(u);
+    const oldEnd = u.onend;
+    const oldError = u.onerror;
+    u.onend = e => {
+      try{ oldEnd?.call(u,e); }catch{}
       speaking = false;
       scheduleRestart(500);
     };
-    speechSynthesis.speak(u);
+    u.onerror = e => {
+      try{ oldError?.call(u,e); }catch{}
+      speaking = false;
+      scheduleRestart(700);
+    };
   }
 
-  // Replace the base Javis voice with the movie-style voice profile.
+  // Ensure every existing Javis spoken reply gets the same movie-style voice profile.
+  if(synth && nativeSpeak){
+    synth.speak = utterance => {
+      prepareForSpeech(utterance);
+      nativeSpeak(utterance);
+    };
+  }
+
+  function movieSpeak(text){
+    if(!nativeSpeak || !text) return;
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(String(text));
+    prepareForSpeech(u);
+    nativeSpeak(u);
+  }
+
   window.speak = movieSpeak;
 
   function cleanWakePhrase(text){
@@ -85,7 +108,7 @@
     waitingForCommand = false;
     input.value = command;
     movieSpeak("Understood.");
-    setTimeout(()=>run.click(), 250);
+    setTimeout(()=>run.click(), 300);
   }
 
   function ensureRecognizer(){
@@ -165,9 +188,9 @@
   window.addEventListener("load",()=>{
     const btn = byId("handsfree");
     if(btn) btn.addEventListener("click", toggleHandsFree);
-    if(window.speechSynthesis){
-      speechSynthesis.getVoices();
-      speechSynthesis.addEventListener?.("voiceschanged",()=>speechSynthesis.getVoices(),{once:true});
+    if(synth){
+      synth.getVoices();
+      synth.addEventListener?.("voiceschanged",()=>synth.getVoices(),{once:true});
     }
   });
 
