@@ -4,10 +4,15 @@
   const synth = window.speechSynthesis || null;
   const nativeSpeak = synth?.speak?.bind(synth) || null;
   let handsFree = false;
+  try{ handsFree = localStorage.getItem("javis_handsfree") === "1"; }catch{}
   let recognizer = null;
   let speaking = false;
   let waitingForCommand = false;
   let restartTimer = null;
+
+  function saveHandsFree(){
+    try{ localStorage.setItem("javis_handsfree", handsFree ? "1" : "0"); }catch{}
+  }
 
   function availableVoices(){
     return (synth?.getVoices?.() || []);
@@ -73,7 +78,6 @@
     };
   }
 
-  // Ensure every existing Javis spoken reply gets the same movie-style voice profile.
   if(synth && nativeSpeak){
     synth.speak = utterance => {
       prepareForSpeech(utterance);
@@ -151,6 +155,7 @@
     recognizer.onerror = event => {
       if(event.error === "not-allowed" || event.error === "service-not-allowed"){
         handsFree = false;
+        saveHandsFree();
         setHandsFreeUi();
         const msg = byId("cmdmsg");
         if(msg) msg.textContent = "Microphone permission is required for Hands-free mode.";
@@ -172,6 +177,7 @@
       return;
     }
     handsFree = !handsFree;
+    saveHandsFree();
     waitingForCommand = false;
     setHandsFreeUi();
     ensureRecognizer();
@@ -188,9 +194,14 @@
   window.addEventListener("load",()=>{
     const btn = byId("handsfree");
     if(btn) btn.addEventListener("click", toggleHandsFree);
+    setHandsFreeUi();
     if(synth){
       synth.getVoices();
       synth.addEventListener?.("voiceschanged",()=>synth.getVoices(),{once:true});
+    }
+    if(handsFree && Recognition){
+      ensureRecognizer();
+      scheduleRestart(700);
     }
   });
 
@@ -198,6 +209,7 @@
     if(document.hidden){
       try{ recognizer?.abort(); }catch{}
     }else if(handsFree){
+      ensureRecognizer();
       scheduleRestart(300);
     }
   });
